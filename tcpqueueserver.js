@@ -6,17 +6,17 @@ var net = require('net');
 /** Queue - basic queue implemented as internally via js array
  *  allows enqueue, next and getQueueLength operations */
 class Queue {
-  /* constructor - for Queue */
+  /** constructor - for Queue */
   constructor() {
     this.store = []; // internally uses js array
   }
-  /* enqueue - adds an item to the queue
+  /** enqueue - adds an item to the queue
    * @param {Object} o - an object to be enqueued
    */
   enqueue(o) { // expects object be passed to it
     this.store.push(o);
   }
-  /* next - gets the next item from the fifo or throws an error
+  /** next - gets the next item from the fifo or throws an error
    * @return {Object} - the next item
    */
   next() {
@@ -25,20 +25,20 @@ class Queue {
       throw new Error('Ran out');
     return item;
   }
-  /* getLength - gets the length of the queue 
+  /** getLength - gets the length of the queue 
    * @return {Number} - the length of the queue
    */
   getLength(){
     return this.store.length;
   }
 }
-/* MessageService - message service implementation allowing a single input
+/** MessageService - message service implementation allowing a single input
  * queue and multiple ( amount specified by numOut ) possible output queues,
  * the dispatch to which is handled by a passed routingFn, and input item
  * transformation handled by the transformFn passed to the constructor
  * */
 class MessageService{
-  /* constructor for MessageService
+  /** constructor for MessageService
    * @param {Number} numOut - number of output queues
    * @param {function} transformFn - does work to transform input into
    * output items
@@ -56,7 +56,7 @@ class MessageService{
       this.outQueues[i] = new Queue();
     }
   }
-  /* debugPrint - prints out debug messages whenever this.debug is enabled 
+  /** debugPrint - prints out debug messages whenever this.debug is enabled 
    * in the constructor, for developer use only
    */
   debugPrint(){
@@ -64,7 +64,7 @@ class MessageService{
       console.log.apply(this,arguments);
     }
   }
-  /* dispatchOne - takes a single next item from this.transfQueue and adds
+  /** dispatchOne - takes a single next item from this.transfQueue and adds
    * it to the appropriate out queue that it belongs to, using the routing
    * function supplied to the constructor.*/
   dispatchOne(){
@@ -73,7 +73,7 @@ class MessageService{
     if( outN <0 || outN > this.outQueues.length -1 )
       this.outQueues[outN].enqueue(out);
   }
-  /* dispatchAll - iterates the entire transfQueue and dispatches item by item
+  /** dispatchAll - iterates the entire transfQueue and dispatches item by item
    * until it has run through the whole transfQueue
    */
   dispatchAll(){
@@ -81,7 +81,7 @@ class MessageService{
       this.dispatchOne();
     }
   }
-  /* transformAndDipatchAll - transforms a next single item, adds it to
+  /** transformAndDipatchAll - transforms a next single item, adds it to
    * transfQueue and then runs this.dispatchAll to attempt to dispatch
    * this item and any other remaining possible next items that were not 
    * previously dispatched
@@ -92,7 +92,7 @@ class MessageService{
     this.dispatchAll(); // attempt to route all in transformed queue into
     this.debugPrint(this.outQueues);//appropriate out queue
   }
-  /* enqueue - takes a JSON string, parses it to an Object, which it then 
+  /** enqueue - takes a JSON string, parses it to an Object, which it then 
    * enqueues in the "in" queue. After its there, it transforms it and runs
    * processes the items in the transfQueue via transformAndDipatchAll
    * @param {string} msg - single JSON string representing an Object
@@ -102,7 +102,7 @@ class MessageService{
     this.transformAndDipatchAll(); // transform one enqueued item and 
     // run dispatch on all in transformed queue
   }
-  /* next - gets the next item from a specified out queue
+  /** next - gets the next item from a specified out queue
    * @param  {Number} N - out queue channel id for which to get next item
    * @return {string} JSON representation of the next item in the queue 
    * specified by N
@@ -114,7 +114,7 @@ class MessageService{
     this.debugPrint(this.outQueues);
     return JSON.stringify(this.outQueues[N].next());//return string represent
   }
-  /* getLengthOutQueue - gets the length of a specified out queue
+  /** getLengthOutQueue - gets the length of a specified out queue
    * @param {Number} n - the id for the out queue
    * @return {Number} - the length of the out queue
    */
@@ -122,12 +122,12 @@ class MessageService{
     return this.outQueues[n].getLength();
   }
 }
-/* SequentialMessageService - a message service implementation which
+/** SequentialMessageService - a message service implementation which
  * has the same functionality of MessageService, but in addition supports
  * messages that are sequential ( partitioned messages )
  */
 class SequentialMessageService extends MessageService {
-  /* constructor - constructor for SequentialMessageService, includes
+  /** constructor - constructor for SequentialMessageService, includes
    * extra code to handle sequential indexes and to ensure correct routing
    * after first element is routed
    * @param {Number} numOut - number of output queues
@@ -141,7 +141,7 @@ class SequentialMessageService extends MessageService {
     this.seqOutIndex={}; // maps seqId's to last out index processed
     this.seqOutRoute={}; // maps seqId's to first route for 0 item in seq
   }
-  /* routeItem- helper function to route ( enqueue ) an item to its
+  /** routeItem- helper function to route ( enqueue ) an item to its
    * correct out queue. (Used by dispatchOne.)  This function checks sequence
    * for the presense of sequence id's and maintains correct route id
    * state per sequence id
@@ -164,7 +164,7 @@ class SequentialMessageService extends MessageService {
       throw new Error("Bad dispatch route number");
     this.outQueues[outN].enqueue(item); // enqueue in correct out queue
   }
-  /* dispatchOne - takes a single next item from this.transfQueue and adds
+  /** dispatchOne - takes a single next item from this.transfQueue and adds
    * it to the appropriate out queue that it belongs to, using the routing
    * function supplied to the constructor.
    * Includes code to check that correct sequence id's are provided
@@ -195,11 +195,11 @@ class SequentialMessageService extends MessageService {
       this.routeItem(out);
   }
 }
-/* TcpServer - basic server implementation which binds to host and listens on
+/** TcpServer - basic server implementation which binds to host and listens on
  * port for TCP connections and handles the input and output streams for 
  * the socket via socketHandler function */
 class TcpServer {
-  /* constructor - for TcpServer 
+  /** constructor - for TcpServer 
    * @param {string} host - a hostname (IP address) to bind to
    * @param {Number} port - a TCP port to listen on
    * @param {Function} socketHandler - a function that will be passed
@@ -213,13 +213,13 @@ class TcpServer {
     this.server = net.createServer(socketHandler); // stores a net.Server 
     //instance based on socketHandler
   }
-  /* listen - calls this.server.listen with the port and host provided to the
+  /** listen - calls this.server.listen with the port and host provided to the
    * constructor
    */
   listen(){
     this.server.listen(this.port,this.host);
   }
-  /* close - closes server
+  /** close - closes server
    * @param {Function} cb - callback called on succesful close
    */
   close(cb){
@@ -227,16 +227,16 @@ class TcpServer {
     this.server.close(cb); // close the server, call cb on completion
   }
 }
-/* TcpClient - basic client implentation that connects to host:port and
+/** TcpClient - basic client implentation that connects to host:port and
  * is capable of sending a request and processing the response to that 
  * request */
 class TcpClient {
-  /* constructor - to TcpClient */
+  /** constructor - to TcpClient */
   constructor(host,port){
     this.host = host; // host/ip to connect to
     this.port = port; // port to connect to
   }
-  /* send - send a request string data to the socket input stream provided
+  /** send - send a request string data to the socket input stream provided
    * by the connection to host/port provided in constructor. Any successful
    * response is sent back by calling callback cb as second parameter.
    * Any error response is also sent via callback cb as first parameter.
@@ -260,12 +260,12 @@ class TcpClient {
       }
     });
   }
-  /* close - closes the client connection */
+  /** close - closes the client connection */
   close(){
     this.client.end();
   }
 }
-/* MessageServiceClient - a type of client that sends 
+/** MessageServiceClient - a type of client that sends 
  * MessageServiceHandlerSocket type requests for enqueue and 
  * next opertions specifically. Callbacks containing the responses are 
  * processed as Promises */
@@ -274,7 +274,7 @@ class MessageServiceClient extends TcpClient {
   constructor(host,port){
     super(host,port); // call parent constructor
   }
-  /* enqueue - enqueues a stringified object into the server's in queue for 
+  /** enqueue - enqueues a stringified object into the server's in queue for 
    * processing
    * @param {String} data - the string representation of the item
    * @return {Promise} - a promise which will resolve to true if the enqueue
@@ -289,7 +289,7 @@ class MessageServiceClient extends TcpClient {
       });
     });
   }
-  /* next - asks the server for the next item in out queue specified by n
+  /** next - asks the server for the next item in out queue specified by n
    * @param {Number} n - number of out queue to query an item for
    * @return {Promise} - a promise 
    */
@@ -303,18 +303,18 @@ class MessageServiceClient extends TcpClient {
     });
   }
 }
-/* MessageServiceSocketHandler - server side handling of MessageServer 
+/** MessageServiceSocketHandler - server side handling of MessageServer 
  * operations. Handles socket events with the data event specifically being 
  * the one the stream is serialized into JSON's and where each JSON is
  * processed as an action, and then these individual actions are implemented
  * via the service provided
  */
 class MessageServiceSocketHandler{
-  /* constructor - for MessageServiceSocketHandler */
+  /** constructor - for MessageServiceSocketHandler */
   constructor( socket, service ){
     var self = this;
     this.service = service;
-    /* enqueueResponder - "private" function that enqueues an item using
+    /** enqueueResponder - "private" function that enqueues an item using
      * the service provided in the constructor and writes out
      * a successful response or throws an error, depending on whether a valid
      * request object is provided
@@ -327,7 +327,7 @@ class MessageServiceSocketHandler{
       self.service.enqueue(JSON.stringify(req.data)); // enqueue the item
       socket.write(JSON.stringify('{"_enqueued":true}')); // respond
     }
-    /* nextResponder - "private" function that gets an next item from the 
+    /** nextResponder - "private" function that gets an next item from the 
      * out queue using service provided in constructor and writes out
      * a successful response or throws an error depending on whether a valid
      * request object is provided
@@ -339,7 +339,7 @@ class MessageServiceSocketHandler{
       }
       socket.write(self.service.next(req.channel));
     }
-    /* serve - "private" function used as callback to process requests written
+    /** serve - "private" function used as callback to process requests written
      * to the client connection's output socket's stream ( that come in via \
      * "data" event ). Responses are written to the client connection's input
      * stream via Socket.write
@@ -390,7 +390,7 @@ class MessageServiceServer {
     var self=this;
     this.service= service;
     this.clients = []; // we keep all the client connection sockets here
-    /* listener - private function that is called any time a client connects
+    /** listener - private function that is called any time a client connects
      * to the port, creating a new socket. The listener adds the socket
      * to the clients registry and handles the input/output via a 
      * MessageServiceSocketHandler
@@ -404,7 +404,7 @@ class MessageServiceServer {
     this.server = new TcpServer(hostname,port,listener);// create the server
     this.server.listen(); // make it listen
   }
-  /* close - destroys any existing client connections and then closes the 
+  /** close - destroys any existing client connections and then closes the 
    * server
    * @param {Function} cb - callback called on successful server close*/
   close(cb){
@@ -414,7 +414,7 @@ class MessageServiceServer {
     this.server.close(cb); // close server
   }
 }
-/* exampleTransform - actual transformation function implemenation used
+/** exampleTransform - actual transformation function implemenation used
  * to transform in items into out items for the example challenge, passed
  * to MessageService object constructors
  * transformation rules are:
@@ -452,7 +452,7 @@ const exampleTransform = (msg) => {
   }
   return out;
 }
-/* exampleDispatch - actual dispatch function implementation used to get the
+/** exampleDispatch - actual dispatch function implementation used to get the
  * correct output queue number for the transformed objects, this function
  * is passed to MessageService object constructors.
  * Dispatch rules are:
